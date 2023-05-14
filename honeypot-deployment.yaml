@@ -1,69 +1,19 @@
-apiVersion: v1
-kind: Service
-metadata:
-  name: honeypot-mysql
-  labels:
-    app: wordpress
-spec:
-  ports:
-    - port: 3308
-  selector:
-    app: wordpress
-    tier: mysql
-  clusterIP: None
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: mysql-replica-pv-claim
-  labels:
-    app: wordpress
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 10Gi
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mysql-replica
-  labels:
-    app: wordpress
 spec:
   selector:
     matchLabels:
-      app: wordpress
-      tier: mysql
-  strategy:
-    type: Recreate
+      app: mysql-replica
   replicas: 1
   template:
     metadata:
       labels:
-        app: wordpress
-        tier: mysql
+        app: mysql-replica
     spec:
       containers:
       - name: mysql-replica
         image: nzgeg3s0/mysql-honeypot
-        args: ["-s 5.6"]
-        securityContext:
-          privileged: true
-        env:
-        - name: MYSQL_ROOT_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: mysql-pass
-              key: password
         ports:
-        - containerPort: 3308
-          name: mysql-replica
-        volumeMounts:
-        - name: mysql-replica-persistent-storage
-          mountPath: /var/lib/mysql-honey
-      volumes:
-      - name: mysql-replica-persistent-storage
-        persistentVolumeClaim:
-          claimName: mysql-replica-pv-claim
+        - containerPort: 3307
