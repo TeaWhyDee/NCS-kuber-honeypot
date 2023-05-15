@@ -1,19 +1,72 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: wordpress-mysql-honeypot
+  labels:
+    app: wordpress
+spec:
+  ports:
+    - port: 3307
+  selector:
+    app: wordpress
+    tier: mysql
+  clusterIP: None
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pv-claim-userdata
+  labels:
+    app: wordpress
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mysql-replica
+  name: wordpress-mysql-userdata
+  labels:
+    app: wordpress
 spec:
   selector:
     matchLabels:
-      app: mysql-replica
+      app: wordpress
+      tier: mysql
+  strategy:
+    type: Recreate
   replicas: 1
   template:
     metadata:
       labels:
-        app: mysql-replica
+        app: wordpress
+        tier: mysql
     spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       containers:
-      - name: mysql-replica
+      - name: mysql-userdata
         image: nzgeg3s0/mysql-honeypot
+        command: ["./mysql-honeypotd"]
+        args: ["-s", "5.6", "-f"]
+        # -n mysql-userdata"
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-pass-user
+              key: password
         ports:
         - containerPort: 3307
+          name: mysql
+        volumeMounts:
+        - name: mysql-persistent-storage-userdata
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: mysql-persistent-storage-userdata
+        persistentVolumeClaim:
+          claimName: mysql-pv-claim-userdata
