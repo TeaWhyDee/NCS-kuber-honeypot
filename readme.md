@@ -2,6 +2,7 @@
 1. Install minikube
 2. Run in git root:
 ```bash
+minikube start --nodes 2 -p multinode-demo
 kubectl apply -k ./
 ```
 
