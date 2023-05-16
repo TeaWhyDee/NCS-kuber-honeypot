@@ -5,6 +5,11 @@ secretGenerator:
 - name: mysql-pass-user
   literals:
   - password=3p48urefnp9y4
+- name: ntfy-creds
+  envs:
+  - .env
+  # literals:
+  # - username=p0g8rnvep8u3p2ed
 resources:
 - mysql-deployment.yaml
 - wordpress-deployment.yaml

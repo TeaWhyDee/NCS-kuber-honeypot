@@ -8,10 +8,9 @@ IP_REG = r'\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][
 
 newfile = open("logs.log", "a+")
 
-# text = sys.stdin
 text = sys.argv
-# print(text)
-# print("!")
+ntfy_user = os.environ.get('NTFY_USER') or ""
+ntfy_pass = os.environ.get('NTFY_PASS') or ""
 
 for line in text:
     print(line.strip())
@@ -20,7 +19,7 @@ for line in text:
         for m in matches:
             newfile.write(m + '\n')
         response = requests.post("https://ntfy.teawide.xyz/ncs",
-                                 auth=("tmp", "tmp"),
+                                 auth=(ntfy_user, ntfy_pass),
                                  headers = {
                                      'Priority': 'urgent',
                                      'Tags': 'warning'
